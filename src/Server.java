@@ -30,21 +30,19 @@ public class Server {
         }
     }
 
-    private void handleClient(Socket clientSocket) {
+    private void handleClient(@org.jetbrains.annotations.NotNull Socket clientSocket) {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            out.println("type \"/help\" to display the user manual \n" +
+                    "start broadcast conversation  ");
 
 
-
-
-            out.println(" |start broadcast conversation \n type \"/private\" for private message \n type \"/users\" show connected users   \n type \"/exit\" to LogOut");
-            String username = in.readLine();
+            String username =in.readLine();
             connectedClients.put(username, out);
-
             System.out.println(username + " connected");
-
             broadcastMessage("SERVER", username + " has joined the chat.");
+
 
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
@@ -54,10 +52,13 @@ public class Server {
                     handlePrivateMessage(username, inputLine);
                 } else if (inputLine.equals("/users")) {
                     showConnectedUsers(username);
-                }
-                else{
-                    broadcastMessage(username, inputLine);
-                }
+                } else if (inputLine.equals("/help")){
+                    out.println(" start broadcast conversation \n" +
+                            " type \"/private\" for private message ( /private {destination username} {message} ) \n" +
+                            " type \"/users\" show connected users   \n" +
+                            " type \"/exit\" to LogOut  \n" +
+                            " type \"/help\" to display the user manual ");
+                }else {broadcastMessage(username, inputLine);}
             }
 
             System.out.println(username + " disconnected");
@@ -81,7 +82,7 @@ public class Server {
 
             PrintWriter recipientOut = connectedClients.get(recipient);
             if (recipientOut != null) {
-                connectedClients.get(sender).println(sender + " in private :" + content);
+                connectedClients.get(sender).println("Private message to " + recipient +": " + content);
                 recipientOut.println("Private message from " + sender + ": " + content);
             } else {
                 connectedClients.get(sender).println("Recipient '" + recipient + "' not found.");
